@@ -13,15 +13,17 @@ const readVideoIdsFileNames = () => readDir('./video_ids')
 const readVideoIdsFromJson = (fileName) => readFile(`./video_ids/${fileName}.json`)
   .then(text => JSON.parse(text));
 
-const downloadVideo = (title, category, url) => new Promise((resolve, reject) => {
-  console.log('Starting download of ' + title);
-  const downloadFolder = `./downloads/${category}/`;
-  // const fileName = `/Volumes/iSafe/LesMills/${_.snakeCase(title)}.mp4`;
+const downloadVideo = (title, id) => new Promise((resolve, reject) => {
+  // const downloadFolder = `./downloads/${category}/`;
+  const downloadFolder = `/Volumes/iSafe/Eckhart Tolle/`;
   const fileName = `${downloadFolder}${_.snakeCase(title)}.mp4`;
 
-  if (!fs.existsSync(downloadFolder)){
-    fs.mkdirSync(downloadFolder);
+  if (fs.existsSync(fileName)){
+    console.log(`Already exists '${title}' (${fileName})!`)
+    resolve();
+    return;
   }
+  const url = fetchVideoDownloadUrl(id);
 
   const downloaded = fs.existsSync(fileName) ? fs.statSync(fileName).size : 0;
   const video = youtubedl(url, [], {
@@ -50,13 +52,12 @@ const fetchVideoDownloadUrl = videoId => {
 (async () => {
   const videoIdsFileNames = await readVideoIdsFileNames();
   await Promise.map(videoIdsFileNames, async category => {
-    console.log(`Category ${category}`)
+    console.log(`> Category ${category}`)
     // const videoIdsFileName = 'Ego';
     const videoIds = await readVideoIdsFromJson(category);
 
     await Promise.map(videoIds, ({ title, id }) => {
-      const url = fetchVideoDownloadUrl(id);
-      return downloadVideo(title, category, url);
+      return downloadVideo(title, id);
     }, {
       concurrency: concurrentDownloads,
     });
