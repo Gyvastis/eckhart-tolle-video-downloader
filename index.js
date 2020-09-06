@@ -4,7 +4,7 @@ const fs = require('fs');
 const youtubedl = require('youtube-dl');
 const fetch = require('node-fetch');
 
-const concurrentDownloads = 1;
+const concurrentDownloads = 3;
 const readFile = Promise.promisify(fs.readFile);
 const readDir = Promise.promisify(fs.readdir);
 
@@ -49,7 +49,7 @@ const fetchVideoDownloadUrl = videoId => {
 
 (async () => {
   const videoIdsFileNames = await readVideoIdsFileNames();
-  videoIdsFileNames.map(async category => {
+  await Promise.map(videoIdsFileNames, async category => {
     console.log(`Category ${category}`)
     // const videoIdsFileName = 'Ego';
     const videoIds = await readVideoIdsFromJson(category);
@@ -60,5 +60,7 @@ const fetchVideoDownloadUrl = videoId => {
     }, {
       concurrency: concurrentDownloads,
     });
+  }, {
+    concurrency: 1,
   });
 })();
