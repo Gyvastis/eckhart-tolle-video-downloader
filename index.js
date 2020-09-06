@@ -26,6 +26,7 @@ const downloadVideo = (title, id) => new Promise((resolve, reject) => {
   const url = fetchVideoDownloadUrl(id);
 
   const downloaded = fs.existsSync(fileName) ? fs.statSync(fileName).size : 0;
+
   const video = youtubedl(url, [], {
     start: downloaded,
     cwd: __dirname
@@ -38,7 +39,10 @@ const downloadVideo = (title, id) => new Promise((resolve, reject) => {
     console.log(`Downloaded '${title}' (${fileName})!`)
     resolve();
   });
-  video.on('error', reject);
+  video.on('error', (error) => {
+    console.log(`Download failed '${title}' (${fileName})! ` + error.message);
+    resolve();
+  });
 
   video.pipe(fs.createWriteStream(fileName))
 });
